@@ -30,3 +30,7 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+nvim*
+
+node_modules/
+web/static/css/app.css

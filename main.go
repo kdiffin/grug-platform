@@ -5,11 +5,10 @@ import (
 	"net/http"
 )
 
-func hello(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "hey")
-}
-
 func main() {
-	http.HandleFunc("/", hello)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./web/static"))))
+	http.HandleFunc("/", home(templates))
+
+	fmt.Println("starting server on :8090")
 	http.ListenAndServe(":8090", nil)
 }
