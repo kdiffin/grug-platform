@@ -1,0 +1,2 @@
+- [ ] setup bubble tea, look through it and build something small with it
+- [ ] finish out phase 0
