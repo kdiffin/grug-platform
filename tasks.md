@@ -1,2 +1,3 @@
 - [ ] setup bubble tea, look through it and build something small with it
+- [ ] research open application model, platform engineering best practices, the history, kubevela, OAM based platform engineering and etc. Go deep into this, look at the best practices, gather out what you can, and just continue with the project.
 - [ ] finish out phase 0
