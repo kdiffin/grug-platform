@@ -1,5 +1,7 @@
-# devlog
 decisions and journaling
+
+--- 
+
 
 `2026-07-19 21:33` - I don't like GUI's
 I tried thinking how I'd do the GUI for this thing, but I realized I don't really like working with GUI's and build systems like tailwind css and daisy ui honestly.

@@ -1,113 +1,53 @@
-# grug-platform plan
 
-Build a small platform to relearn software development by hand.
+this project is for ease of deployments in K8s
 
-AI may explain concepts, review code, or help diagnose errors. It should not write
-the implementation or complete TODOs.
+it gives you a nice CLI interface for working with k8s native deployments.
 
-## Shape
+You will be able to easily manage stuff like:
 
-One Go binary with two clients:
+Databases/queues/cache with mandatory backups
+Built in FOSS observability with grafana / whatever I want to choose 
+Built in argoCD / gitops integration
+and so on..
 
-```text
-grug app ...
-grug deploy ...
-grug deployment ...
-grug tui
-```
+The configs and what it installs in terms of operators will be transparent.
 
-Both clients call the same application layer. The TUI does not execute the CLI,
-and neither client owns validation, persistence, queueing, or Kubernetes logic.
+We're not trying to make a new platform like AWS, we're just taking the existing building blocks that allow on-prem cloud native deployments to work and making it easy to setup.
 
-```text
-cmd/grug/          wiring and process lifecycle
-internal/app/      workflows and validation
-internal/cli/      arguments and terminal output
-internal/tui/      Bubble Tea UI
-internal/cluster/  fake and Kubernetes adapters
-internal/storage/  persistence
-```
+Theres only so many things apps and infra needs, I think those are mainly:
 
-Keep `internal/app` as one deep module until splitting it solves a real problem.
-Use the standard library for the CLI and Bubble Tea for the TUI.
+Version control (git does this already, no gap here)
 
-## Milestones
+Backups restorability, and rollbacks (ik how id do this for cloudnativepg, i have to look at the others and figure out whats the best practice for those though and really get that dialed in.) 
 
-### 0 — CLI skeleton
+Also I should look at how to do this on the application level. stateful apps should be thought through (task) and how devs request disk space should be thought through. 
 
-Estimated time: 1 evening.
+I believe we can add some sort of stanza for this.  
 
-Create the `grug` command with help, subcommand routing, useful errors, exit codes,
-configuration, and graceful shutdown.
 
-Done when valid, invalid, help, and cancelled commands behave predictably.
+## interface 
 
-### 1 — Applications
+Grug in the future can have these commands:
 
-Estimated time: 1–2 evenings.
+`grug spin db` -> gives a list of dbs to choose from, and their sizes, s, m, l or custom 
+`grug spin cache` -> redis, memcached 
+`grug spin message-queue` -> 
+`grug deploy agent` -> deploys an agent which can be configured to be any agent you want (hermes, openclaw, etc.) with the permissions you want 
 
-Add application registration and listing with in-memory storage. Validate names,
-images, ports, and duplicates in the application layer.
+and these will automatically provide backups for these projects (so for example if its cloudnativepg, it will back it up to either a local s3 (if the uri is provided) or aws s3.) spinning up the db without backups should be allowed but should be heavily advised against in the CLI.
 
-Done when `app add` and `app list` work without containing business logic.
+## personal thoughts
 
-### 2 — Deployments
+I think the program should also have primitives to spin up a k8s cluster easily, but like, on steroids though.
 
-Estimated time: 2–3 evenings.
+Just run grug init, and boom. Everything is setup.
 
-Add a bounded queue, fixed workers, cancellation, and these states:
+In the future this can be done via integrations with AWS, GCP, Azure, etc.
 
-```text
-queued -> deploying -> ready
-                     -> failed
-```
+For the initial scope now though im just going to get those commands working with sensible defaults. Kafka with streamzi, Postgres with cloudnativepg, easy argocd / grafna integration, automatic backups, etc.
 
-Use a fake cluster first. Add commands to request and inspect deployments.
+And then we can integrate user applications to this easily as well. maybe link it to a git repo with a simple yaml which defines which resources it wants, and grug handles it itself and shows it in the cli when running 
 
-Done when concurrent jobs show correct transitions and backpressure.
+`grug list (resource type)`
 
-### 3 — Persistence
-
-Estimated time: 1–2 evenings.
-
-Store records as JSON using atomic file replacement. Keep storage behind the
-application boundary.
-
-Done when data survives restarts and `go test -race ./...` passes.
-
-### 4 — Kubernetes
-
-Estimated time: 2–3 evenings.
-
-Add a small `kubectl` adapter for namespaces, Deployments, Services, readiness,
-timeouts, cancellation, and useful errors.
-
-Done when a deployment succeeds in a disposable `k3d` cluster.
-
-### 5 — TUI
-
-Estimated time: 2–4 evenings.
-
-Build a thin Bubble Tea client over the same application API. Support Vim-style
-movement, contextual help, loading and error states, refresh, and clean quit.
-
-Done when registration, deployment, listing, and inspection produce the same
-state through both clients.
-
-### 6 — Polish
-
-Estimated time: 1–2 evenings.
-
-Add structured logs, configurable worker and queue limits, timeouts, and clear
-failure reporting. Do not add a web server or frontend build system.
-
-## Tests
-
-- Unit-test validation, state transitions, backpressure, and cancellation.
-- Test CLI parsing, output, and exit codes without starting the TUI.
-- Test TUI updates with messages and fake application dependencies.
-- Test storage with temporary directories.
-- Run race tests before each milestone is considered done.
-
-Prefer small files, few dependencies, and code written only when the current
-milestone needs it.
+`note-to-self` I should be wary of not recreating k8s.

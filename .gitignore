@@ -31,6 +31,8 @@ go.work.sum
 # .idea/
 # .vscode/
 nvim*
+grug-platform
+tmp/
 
 node_modules/
 web/static/css/app.css
