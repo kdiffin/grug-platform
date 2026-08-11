@@ -1,4 +1,4 @@
-
+# deprecated 
 this project is for ease of deployments in K8s
 
 it gives you a nice CLI interface for working with k8s native deployments.
