@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -17,5 +18,6 @@ func main() {
 	http.HandleFunc("/", hello)
 	http.HandleFunc("/healthz", health)
 
+	log.Println("starting server at 8081")
 	http.ListenAndServe(":8081", nil)
 }
