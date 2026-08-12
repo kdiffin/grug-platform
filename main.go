@@ -29,6 +29,8 @@ func main() {
 	}
 
 	http.HandleFunc("/livez", livez)
+	// todo
+	http.HandleFunc("/readyz", livez)
 
 	log.Printf("http server started on port %v", port)
 	err = http.ListenAndServe(":"+port, nil)
