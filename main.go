@@ -9,13 +9,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func livez(w http.ResponseWriter, r *http.Request) {
-	_, err := fmt.Fprint(w, "ok")
-	if err != nil {
-		fmt.Print("cannot write to file")
-	}
-}
-
 func main() {
 	// load env vars
 	err := godotenv.Load()
@@ -28,9 +21,22 @@ func main() {
 		port = "8080"
 	}
 
-	http.HandleFunc("/livez", livez)
-	// todo
-	http.HandleFunc("/readyz", livez)
+	if len(os.Args) < 2 {
+		fmt.Fprintln(os.Stderr, "usage: grug <command>")
+		os.Exit(1)
+	}
+
+	switch os.Args[1] {
+	case "status":
+		fmt.Println("everything is okay")
+	case "deploy":
+		fmt.Println("deploying this")
+	case "help":
+		fmt.Println("usage: grug <command>")
+	}
+
+	fmt.Print(os.Args[0])
+	fmt.Print(os.Args[1])
 
 	log.Printf("http server started on port %v", port)
 	err = http.ListenAndServe(":"+port, nil)
