@@ -2,11 +2,22 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
+	"strconv"
+	"strings"
 
-	"github.com/kdiffin/grug-platform/internal/deploy"
+	"go.yaml.in/yaml/v3"
 )
+
+type AppConfig struct {
+	Name   string `yaml:"name"`
+	Port   int    `yaml:"port"`
+	Health string `yaml:"health"`
+}
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
@@ -25,8 +36,60 @@ func run(args []string) error {
 		fmt.Println("everything is okay")
 	// todo: break this up into it's own function
 	case "deploy":
-		deploy.DeployCommand(args[1:])
-		deploy.Deploy()
+		deployCmd := flag.NewFlagSet("deploy", flag.ContinueOnError)
+
+		// help isnt an error usually its just regular output
+		deployCmd.SetOutput(os.Stdout)
+		showHelp := deployCmd.Bool("help", false, "you can point grug at a directory using the --dir flag and if it has a grug.yaml the project will be deployed")
+
+		if err := deployCmd.Parse(args[1:]); err != nil {
+			return err
+		}
+
+		// todo: the defaults here fucking suck add a structured cli output here for each of your commands
+		if *showHelp || (len(deployCmd.Args()) < 1) {
+			deployCmd.PrintDefaults()
+			return nil
+		}
+
+		// app := AppConfig{}
+
+		// the path of the repo we want to deploy
+		path := ""
+		paths := deployCmd.Args()
+		if len(paths) >= 1 {
+			path = paths[0]
+		}
+
+		bytes, err := os.ReadFile(path + "/grug.yaml")
+		if err != nil {
+			return err
+		}
+
+		appConfig := AppConfig{}
+
+		if err := yaml.Unmarshal(bytes, &appConfig); err != nil {
+			fmt.Println(err)
+		}
+		portStr := strconv.Itoa(appConfig.Port)
+
+		buildCmd := exec.Command("docker", "build", "-t", "grug/"+appConfig.Name, path)
+		if err := buildCmd.Run(); err != nil {
+			return fmt.Errorf("build dockerfile: %w", err)
+		}
+
+		cmd := exec.Command("docker", "run", "--name", appConfig.Name, "-p", portStr+":"+"8081", "-d", "grug/"+appConfig.Name)
+
+		log.Print(cmd.String())
+
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf(
+				"docker failed: %w: %s",
+				err,
+				strings.TrimSpace(string(output)),
+			)
+		}
 	default:
 		return errors.New("this command does not exist in the grugverse: " + args[0])
 	}
