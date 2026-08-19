@@ -89,6 +89,7 @@ func run(args []string) error {
 	return nil
 }
 
+// TODO: add validation to the grug.yaml file
 func loadConfig(appDir string) (*AppConfig, error) {
 	fmt.Println("printing appDir", appDir)
 	if appDir[len(appDir)-1] == '/' {
