@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"go.yaml.in/yaml/v3"
+	"gopkg.in/yaml.v3"
 )
 
 type AppConfig struct {
@@ -52,8 +52,6 @@ func run(args []string) error {
 			return nil
 		}
 
-		// app := AppConfig{}
-
 		// the path of the repo we want to deploy
 		path := ""
 		paths := deployCmd.Args()
@@ -61,15 +59,9 @@ func run(args []string) error {
 			path = paths[0]
 		}
 
-		bytes, err := os.ReadFile(path + "/grug.yaml")
+		appConfig, err := loadConfig("./test-api-deployment/")
 		if err != nil {
-			return err
-		}
-
-		appConfig := AppConfig{}
-
-		if err := yaml.Unmarshal(bytes, &appConfig); err != nil {
-			fmt.Println(err)
+			return fmt.Errorf("error loading config: %w", err)
 		}
 		portStr := strconv.Itoa(appConfig.Port)
 
@@ -95,4 +87,32 @@ func run(args []string) error {
 	}
 
 	return nil
+}
+
+func loadConfig(appDir string) (*AppConfig, error) {
+	fmt.Println("printing appDir", appDir)
+	if appDir[len(appDir)-1] == '/' {
+		appDir = removeRuneAtIndex(len(appDir)-1, appDir)
+	}
+
+	fmt.Println("printing appDir", appDir)
+
+	var appConfig AppConfig
+	bytes, err := os.ReadFile(appDir + "/grug.yaml")
+	if err != nil {
+		return nil, fmt.Errorf("error reading %s/grug.yaml: %w", appDir, err)
+	}
+
+	if err := yaml.Unmarshal(bytes, &appConfig); err != nil {
+		fmt.Println(err)
+	}
+	return &appConfig, nil
+}
+
+func removeRuneAtIndex(i int, str string) string {
+	runes := []rune(str)
+
+	// Correct order: Keep everything BEFORE index + everything AFTER index
+	s := string(runes[:i]) + string(runes[i+1:])
+	return s
 }
