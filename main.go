@@ -110,6 +110,8 @@ func loadConfig(appDir string) (*AppConfig, error) {
 	return &appConfig, nil
 }
 
+// TODO: remove this functiona nd replace its usage with filepath lib
+// https://pkg.go.dev/path/filepath
 func removeRuneAtIndex(i int, str string) string {
 	runes := []rune(str)
 
